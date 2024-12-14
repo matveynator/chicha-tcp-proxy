@@ -1,3 +1,5 @@
+<img src="https://github.com/matveynator/chicha-tcp-proxy/blob/master/chicha-tcp-proxy.png?raw=true" width="50%" align="right"> 
+
 # **Chicha TCP Proxy**
 
 ## **Overview**
