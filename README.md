@@ -1,7 +1,7 @@
 # **Chicha TCP Proxy**
 
 ## **Overview**
-Chicha TCP Proxy is a lightweight and efficient TCP proxy tool. It is designed for simple and reliable TCP traffic forwarding between local and remote ports. The proxy supports multi-core processing for high performance and includes features like daily log rotation with compression.
+Chicha TCP Proxy is a lightweight and efficient TCP proxy tool. It forwards traffic between specified local and remote ports and supports log rotation with compression. It is available for a wide range of operating systems and architectures.
 
 ---
 
@@ -14,10 +14,35 @@ Chicha TCP Proxy is a lightweight and efficient TCP proxy tool. It is designed f
 
 ---
 
-## **Download and Install**
+## **Download**
 
-### **One-Line Installation Command**
-Run the following command to download and install the binary into `/usr/local/bin`:
+Chicha TCP Proxy binaries are available for multiple platforms and architectures.  
+You can browse and download the latest versions here:  
+[http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/)
+
+### **Available Platforms**
+- [AIX](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/aix/)
+- [Android](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/android/)
+- [DragonFly BSD](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/dragonfly/)
+- [FreeBSD](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/freebsd/)
+- [Illumos](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/illumos/)
+- [iOS](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/ios/)
+- [JavaScript/WebAssembly](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/js/)
+- [Linux](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/linux/)
+- [macOS](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/mac/)
+- [NetBSD](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/netbsd/)
+- [OpenBSD](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/openbsd/)
+- [Plan 9](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/plan9/)
+- [Solaris](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/solaris/)
+- [WASI/WebAssembly](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/wasip1/)
+- [Windows](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/windows/)
+- [z/OS](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/zos/)
+
+---
+
+### **Quick Install (Linux x86_64)**
+
+For Linux (64-bit), use this command to download and install:
 ```bash
 sudo curl -o /usr/local/bin/chicha-tcp-proxy http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/linux/amd64/chicha-tcp-proxy && sudo chmod +x /usr/local/bin/chicha-tcp-proxy
 ```
@@ -46,7 +71,7 @@ chicha-tcp-proxy -routes "80:192.168.0.1:80,443:192.168.0.1:443" -log /var/log/c
 
 ---
 
-### **Systemd Setup**
+## **Systemd Setup**
 
 To ensure the proxy runs automatically on system startup, follow these steps:
 
@@ -141,3 +166,12 @@ To remove `chicha-tcp-proxy` from your system:
    sudo systemctl daemon-reload
    ```
 
+---
+
+## **License**
+
+This project is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details.
+
+--- 
+
+Let me know if you need further changes!
