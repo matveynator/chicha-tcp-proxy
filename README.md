@@ -79,7 +79,7 @@ To ensure the proxy runs automatically on system startup, follow these steps:
 
 1. **Create Service File**:
    ```bash
-   sudo nano /etc/systemd/system/chicha-tcp-proxy.service
+   sudo mcedit /etc/systemd/system/chicha-tcp-proxy.service
    ```
 
 2. **Add the Following Content**:
@@ -141,34 +141,6 @@ Log rotation frequency: 24h0m0s
 2024/12/14 13:30:03 Compression successful: /var/log/chicha-tcp-proxy.log.2024-12-14.gz
 ```
 
----
-
-## **Uninstallation**
-
-To remove `chicha-tcp-proxy` from your system:
-
-1. Stop and disable the systemd service:
-   ```bash
-   sudo systemctl stop chicha-tcp-proxy
-   sudo systemctl disable chicha-tcp-proxy
-   ```
-
-2. Delete the binary:
-   ```bash
-   sudo rm /usr/local/bin/chicha-tcp-proxy
-   ```
-
-3. Remove the systemd service file:
-   ```bash
-   sudo rm /etc/systemd/system/chicha-tcp-proxy.service
-   ```
-
-4. Reload systemd:
-   ```bash
-   sudo systemctl daemon-reload
-   ```
-
----
 
 ## **License**
 
