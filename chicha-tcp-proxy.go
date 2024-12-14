@@ -19,9 +19,13 @@ import (
 	"time"          // Package time provides functionality for measuring and displaying time.
 )
 
+// version holds the current version of the proxy application.
+// A programmer might increment this as they update the application.
+var version = "dev"
+
 // Route describes a single forwarding route configuration from a local port to a remote address.
 // LocalPort: The local port on which the proxy listens (e.g. "8080")
-// RemoteIP: The target server IP address to forward traffic to (e.g. "46.4.70.114")
+// RemoteIP: The target server IP address to forward traffic to (e.g. "192.168.1.1")
 // RemotePort: The remote port on the target server to forward traffic to (e.g. "80")
 type Route struct {
 	LocalPort  string // The local port number as a string.
@@ -30,15 +34,23 @@ type Route struct {
 }
 
 func main() {
-	// routesFlag holds the comma-separated list of routes in the format LOCALPORT:REMOTEIP:REMOTEPORT
+	// routesFlag holds the comma-separated list of routes in the format LOCALPORT:REMOTEIP:REMOTEPORT.
 	routesFlag := flag.String("routes", "", "Comma-separated list of routes in the format LOCALPORT:REMOTEIP:REMOTEPORT")
 	// logFile specifies the path to the log file where proxy activity will be logged.
 	logFile := flag.String("log", "chicha-tcp-proxy.log", "Path to the log file")
 	// rotationFrequency specifies how often the log file should be rotated.
 	rotationFrequency := flag.Duration("rotation", 24*time.Hour, "Log rotation frequency (e.g. 24h, 1h, etc.)")
+	// versionFlag indicates if the user wants to print the version and exit.
+	versionFlag := flag.Bool("version", false, "Print the version of the proxy and exit")
 
 	// Parse the provided command-line flags.
 	flag.Parse()
+
+	// If the version flag is set, print the version and exit.
+	if *versionFlag {
+		fmt.Printf("chicha-tcp-proxy version %s\n", version)
+		return
+	}
 
 	// Validate that the required routes flag is provided.
 	if *routesFlag == "" {
@@ -70,7 +82,7 @@ func main() {
 		log.Fatalf("Error setting up logger: %v", err)
 	}
 
-	log.Printf("Starting chicha-tcp-proxy")
+	log.Printf("Starting chicha-tcp-proxy version %s", version)
 
 	// Set the number of OS threads to use based on the number of CPUs available.
 	// According to Go proverbs, "Don't communicate by sharing memory; share memory by communicating."
