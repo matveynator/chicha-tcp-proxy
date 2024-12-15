@@ -1,7 +1,7 @@
 <img src="https://github.com/matveynator/chicha-tcp-proxy/blob/master/chicha-tcp-proxy.png?raw=true" width="100%" align="right"></img>
 
 
-# **сhicha-tcp-proxy: Super-Fast Port Forwarding Tool**
+# Chicha TCP Proxy is the fastest and simplest solution for port forwarding.
 
 Chicha TCP Proxy is a lightweight **Layer 2 (L2) proxy** written in **Go**, designed for efficient port forwarding. It’s faster and simpler than traditional tools like `xinetd`, making it ideal for handling high traffic with minimal setup.
 
