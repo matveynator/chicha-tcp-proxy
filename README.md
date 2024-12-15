@@ -1,4 +1,4 @@
-# **Chicha TCP Proxy: A Simple and Fast Port Forwarding Tool**
+# **chicha-tcp-proxy: A Simple and Fast Layer 2 (TCP) Port Forwarding Tool**
 
 Chicha TCP Proxy is a lightweight **Layer 2 (L2) proxy** designed to efficiently forward traffic between local and remote ports. It’s faster and more optimized than tools like `xinetd`, making it a perfect choice for high-performance setups. 
 
