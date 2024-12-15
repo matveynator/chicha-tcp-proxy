@@ -136,6 +136,27 @@ Shortest transaction:	        0.00
  
 ```
 
+#### **direct requests:**
+```
+siege http://files.zabiyaka.net:80 -t 15s -c 100
+** SIEGE 4.0.4
+** Preparing 100 concurrent users for battle.
+The server is now under siege...
+Lifting the server siege...
+Transactions:		       14778 hits
+Availability:		      100.00 %
+Elapsed time:		       14.14 secs
+Data transferred:	      116.52 MB
+Response time:		        0.03 secs
+Transaction rate:	     1045.12 trans/sec
+Throughput:		        8.24 MB/sec
+Concurrency:		       35.07
+Successful transactions:       11112
+Failed transactions:	           0
+Longest transaction:	        0.19
+Shortest transaction:	        0.00
+```
+
 ---
 
 
