@@ -1,151 +1,68 @@
-<img src="https://github.com/matveynator/chicha-tcp-proxy/blob/master/chicha-tcp-proxy.png?raw=true" width="50%" align="right"> 
+# **Chicha TCP Proxy: A Simple and Fast Port Forwarding Tool**
 
-# **Chicha TCP Proxy**
-
-## **Overview**
-Chicha TCP Proxy is a lightweight and efficient TCP proxy tool. It forwards traffic between specified local and remote ports and supports log rotation with compression. It is available for a wide range of operating systems and architectures.
+Chicha TCP Proxy is a lightweight **Layer 2 (L2) proxy** designed to efficiently forward traffic between local and remote ports. It’s faster and more optimized than tools like `xinetd`, making it a perfect choice for high-performance setups. 
 
 ---
 
-## **Features**
-- **Simple TCP Forwarding**: Define routes as `LOCALPORT:REMOTEIP:REMOTEPORT`.
-- **High Performance**: Utilizes all available CPU cores.
-- **Log Rotation**: Logs are rotated daily and compressed into `.gz` format.
-- **Simultaneous Logging**: Outputs logs to both console and file.
-- **Systemd Compatibility**: Includes a service file for easy autostart on Linux.
+### **Why Use Chicha TCP Proxy?**
+- **Simple Port Forwarding**: Easily map local and remote ports with `LOCALPORT:REMOTEIP:REMOTEPORT`.
+- **High Performance**: Fully utilizes all CPU cores for maximum efficiency.
+- **Minimal Configuration**: One command to start—no complex setup required.
+- **Automatic Log Management**: Daily log rotation with `.gz` compression.
+- **Cross-Platform**: Compatible with all major operating systems and architectures.
 
 ---
 
-## **Download**
-
-Chicha TCP Proxy binaries are available for multiple platforms and architectures.  
-You can browse and download the latest versions here:  
-[http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/)
-
-### **Available Platforms**
-- [AIX](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/aix/)
-- [Android](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/android/)
-- [DragonFly BSD](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/dragonfly/)
-- [FreeBSD](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/freebsd/)
-- [Illumos](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/illumos/)
-- [iOS](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/ios/)
-- [JavaScript/WebAssembly](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/js/)
-- [Linux](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/linux/)
-- [macOS](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/mac/)
-- [NetBSD](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/netbsd/)
-- [OpenBSD](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/openbsd/)
-- [Plan 9](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/plan9/)
-- [Solaris](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/solaris/)
-- [WASI/WebAssembly](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/wasip1/)
-- [Windows](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/windows/)
-- [z/OS](http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/zos/)
-
----
-
-### **Quick Install (Linux x86_64)**
-
-For Linux (64-bit), use this command to download and install:
+### **Quick Start Example**
+Forward local port `80` to `192.168.0.1:80` with a single command:
 ```bash
-sudo curl -o /usr/local/bin/chicha-tcp-proxy http://files.zabiyaka.net/chicha-tcp-proxy/latest/no-gui/linux/amd64/chicha-tcp-proxy && sudo chmod +x /usr/local/bin/chicha-tcp-proxy
+chicha-tcp-proxy -routes "80:192.168.0.1:80" -log /var/log/chicha-tcp-proxy.log
 ```
 
 ---
 
-## **Usage**
-
-### **Basic Command**
-Run the proxy using:
-```bash
-chicha-tcp-proxy -routes "LOCALPORT:REMOTEIP:REMOTEPORT,..." -log /path/to/logfile.log
-```
-
-#### **Example**:
-```bash
-chicha-tcp-proxy -routes "80:192.168.0.1:80,443:192.168.0.1:443" -log /var/log/chicha-tcp-proxy.log
-```
-
-#### **Flags**:
-| Flag          | Description                                                                              | Default                  |
-|---------------|------------------------------------------------------------------------------------------|--------------------------|
-| `-routes`     | Comma-separated list of routes in the format `LOCALPORT:REMOTEIP:REMOTEPORT`.            | Required                 |
-| `-log`        | Path to the log file where logs will be written.                                         | `chicha-tcp-proxy.log`   |
-| `-rotation`   | Frequency for log rotation, e.g., `24h` (24 hours), `1h` (1 hour).                       | `24h`                    |
+### **Key Features**
+- **Super Fast**: Optimized for handling high traffic loads without slowing down.
+- **Logs Included**: Real-time logging to both console and file for easy monitoring.
+- **Autostart on Linux**: Comes with a `systemd` service file for startup on boot.
+- **Simple Installation**: One binary download, ready to run.
 
 ---
 
-## **Systemd Setup**
+### **How Is It Different?**
+Unlike `xinetd` and similar tools, Chicha TCP Proxy focuses on:
+- **Speed**: Designed for high-performance port forwarding.
+- **Simplicity**: No complex configuration files—just one simple command.
+- **Efficiency**: Lightweight and resource-friendly.
 
-To ensure the proxy runs automatically on system startup, follow these steps:
+---
 
-1. **Create Service File**:
+### **Systemd Autostart Setup (Linux)**
+1. Create a `chicha-tcp-proxy.service` file using `mcedit`:
    ```bash
    sudo mcedit /etc/systemd/system/chicha-tcp-proxy.service
    ```
-
-2. **Add the Following Content**:
+2. Add the following content:
    ```ini
    [Unit]
-   Description=Chicha TCP Proxy Service
+   Description=Chicha 80 and 443 TCP Proxy
    After=network.target
 
    [Service]
-   ExecStart=/usr/local/bin/chicha-tcp-proxy -routes "80:192.168.0.1:80,443:192.168.0.1:443" -log /var/log/chicha-tcp-proxy.log
+   ExecStart=/usr/local/bin/chicha-tcp-proxy -routes "80:192.168.0.1:80,443:192.168.0.1:443," -log /var/log/chicha-tcp-proxy.log
    Restart=on-failure
-   RestartSec=5s
-   User=root
-   Group=root
 
    [Install]
    WantedBy=multi-user.target
    ```
+3. Save and exit `mcedit`.
 
-3. **Enable and Start the Service**:
+4. Enable and start the service:
    ```bash
-   sudo systemctl daemon-reload
    sudo systemctl enable chicha-tcp-proxy
    sudo systemctl start chicha-tcp-proxy
    ```
 
-4. **Check Service Status**:
-   ```bash
-   sudo systemctl status chicha-tcp-proxy
-   ```
-
 ---
 
-## **Logs**
-
-- Logs are saved to the file specified by the `-log` flag (e.g., `/var/log/chicha-tcp-proxy.log`).
-- Logs rotate daily and are compressed into `.gz` format.
-- Both console and file logging are enabled simultaneously.
-
----
-
-## **Example Output**
-
-**On Startup**:
-```plaintext
-========== CHICHA TCP PROXY ==========
-Routes:
-  LocalPort=80 -> RemoteIP=192.168.0.1 RemotePort=80
-  LocalPort=443 -> RemoteIP=192.168.0.1 RemotePort=443
-Log file: /var/log/chicha-tcp-proxy.log
-Log rotation frequency: 24h0m0s
-======================================
-```
-
-**Logs**:
-```plaintext
-2024/12/14 13:30:01 Starting proxy for route: local=80 remote=192.168.0.1:80
-2024/12/14 13:30:02 Log file rotated successfully, now compressing old log...
-2024/12/14 13:30:03 Compression successful: /var/log/chicha-tcp-proxy.log.2024-12-14.gz
-```
-
-
-## **License**
-
-This project is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details.
-
---- 
-
-Let me know if you need further changes!
+Chicha TCP Proxy offers **speed and simplicity** for system administrators who need reliable port forwarding without the hassle. Try it today and see the difference!
