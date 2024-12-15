@@ -35,13 +35,13 @@ Chicha TCP Proxy is a lightweight **Layer 2 (L2) proxy** written in **Go**, desi
 #### **Single Port Example**
 Forward traffic from local port `80` to remote `192.168.0.1:80`:
 ```bash
-chicha-tcp-proxy -routes "80:192.168.0.1:80" -log /var/log/chicha-tcp-proxy.log
+sudo chicha-tcp-proxy -routes "80:192.168.0.1:80" -log /var/log/chicha-tcp-proxy.log
 ```
 
 #### **Multiple Ports Example**
 Forward multiple ports simultaneously:
 ```bash
-chicha-tcp-proxy -routes "80:192.168.0.1:80,443:192.168.0.1:443,22:192.168.0.2:22" -log /var/log/chicha-tcp-proxy.log
+sudo chicha-tcp-proxy -routes "80:192.168.0.1:80,443:192.168.0.1:443,22:192.168.0.2:22" -log /var/log/chicha-tcp-proxy.log
 ```
 
 In this example:
