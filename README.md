@@ -90,5 +90,53 @@ In this example:
 - **Ready for Production**: Log rotation, compression, and systemd integration make it production-ready.
 
 ---
+### **Benchmarks**
+
+#### **chicha-tcp-proxy:**
+
+```
+siege http://localhost:8081 -t 15s -c 100
+** SIEGE 4.0.4
+** Preparing 100 concurrent users for battle.
+The server is now under siege...
+Lifting the server siege...
+Transactions:		       15728 hits
+Availability:		      100.00 %
+Elapsed time:		       14.65 secs
+Data transferred:	      124.07 MB
+Response time:		        0.03 secs
+Transaction rate:	     1073.58 trans/sec
+Throughput:		        8.47 MB/sec
+Concurrency:		       33.37
+Successful transactions:       11824
+Failed transactions:	           0
+Longest transaction:	        0.25
+Shortest transaction:	        0.00
+```
+
+#### **xinetd:**
+```
+siege http://localhost:8082 -t 15s -c 100
+** SIEGE 4.0.4
+** Preparing 100 concurrent users for battle.
+The server is now under siege...
+Lifting the server siege...
+Transactions:		       14863 hits
+Availability:		      100.00 %
+Elapsed time:		       14.57 secs
+Data transferred:	      117.20 MB
+Response time:		        0.04 secs
+Transaction rate:	     1020.11 trans/sec
+Throughput:		        8.04 MB/sec
+Concurrency:		       36.99
+Successful transactions:       11178
+Failed transactions:	           0
+Longest transaction:	        0.55
+Shortest transaction:	        0.00
+ 
+```
+
+---
+
 
 Chicha TCP Proxy is the **fastest and simplest solution** for port forwarding. Whether forwarding one port or dozens, it's the ideal tool for sysadmins looking for performance and ease of use!
