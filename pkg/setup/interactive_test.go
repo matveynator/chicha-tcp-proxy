@@ -108,6 +108,79 @@ func TestBuildInteractiveResultAllowsDifferentLocalPort(t *testing.T) {
 	}
 }
 
+func TestBuildInteractiveResultCreatesRoutesForCommaSeparatedPorts(t *testing.T) {
+	result, err := buildInteractiveResult("chicha-ip-proxy", setupDraft{
+		TargetIP:   "203.0.113.20",
+		RemotePort: "80,443,8889",
+		LocalPort:  "8080,8443,8889",
+		Protocol:   "tcp",
+	})
+	if err != nil {
+		t.Fatalf("buildInteractiveResult returned error: %v", err)
+	}
+
+	wantRoutes := []struct {
+		local  string
+		remote string
+	}{
+		{local: "8080", remote: "80"},
+		{local: "8443", remote: "443"},
+		{local: "8889", remote: "8889"},
+	}
+	if len(result.TCPRoutes) != len(wantRoutes) {
+		t.Fatalf("TCP route count = %d, want %d", len(result.TCPRoutes), len(wantRoutes))
+	}
+	for routeIndex, want := range wantRoutes {
+		route := result.TCPRoutes[routeIndex]
+		if route.LocalPort != want.local || route.RemotePort != want.remote {
+			t.Fatalf("route %d ports = local %q remote %q", routeIndex, route.LocalPort, route.RemotePort)
+		}
+	}
+	if result.LocalFlag != "" || result.RemoteFlag != "" {
+		t.Fatalf("multi-route simple flags = local %q remote %q, want empty", result.LocalFlag, result.RemoteFlag)
+	}
+	if result.RoutesFlag != "8080:203.0.113.20:80,8443:203.0.113.20:443,8889:203.0.113.20:8889" {
+		t.Fatalf("RoutesFlag = %q", result.RoutesFlag)
+	}
+
+	args := buildArgs(result, time.Hour)
+	wantRouteArgument := "-routes=" + result.RoutesFlag
+	if !containsString(args, wantRouteArgument) {
+		t.Fatalf("buildArgs = %#v, missing %q", args, wantRouteArgument)
+	}
+}
+
+func TestAskRemotePortMakesLocalPortsFollowRemotePorts(t *testing.T) {
+	draft := setupDraft{}
+	err := askRemotePort(bufio.NewReader(strings.NewReader("80, 443,8889\n")), &draft)
+	if err != nil {
+		t.Fatalf("askRemotePort returned error: %v", err)
+	}
+	if draft.RemotePort != "80,443,8889" {
+		t.Fatalf("RemotePort = %q", draft.RemotePort)
+	}
+
+	err = askLocalPort(bufio.NewReader(strings.NewReader("\n")), &draft)
+	if err != nil {
+		t.Fatalf("askLocalPort returned error: %v", err)
+	}
+	if draft.LocalPort != "80,443,8889" {
+		t.Fatalf("LocalPort = %q", draft.LocalPort)
+	}
+}
+
+func TestBuildInteractiveResultRejectsDifferentPortCounts(t *testing.T) {
+	_, err := buildInteractiveResult("chicha-ip-proxy", setupDraft{
+		TargetIP:   "203.0.113.20",
+		RemotePort: "80,443",
+		LocalPort:  "8080",
+		Protocol:   "tcp",
+	})
+	if err == nil || !strings.Contains(err.Error(), "same number") {
+		t.Fatalf("buildInteractiveResult error = %v", err)
+	}
+}
+
 func TestBuildInteractiveResultFormatsIPv6RemoteFlags(t *testing.T) {
 	result, err := buildInteractiveResult("chicha-ip-proxy", setupDraft{
 		TargetIP:   "2001:db8::20",
@@ -178,6 +251,24 @@ func TestSetupCommandTextShowsDifferentLocalAndRemotePorts(t *testing.T) {
 	}
 }
 
+func TestSetupCommandTextUsesMultiRouteFlagForPortLists(t *testing.T) {
+	result, err := buildInteractiveResult("chicha-ip-proxy", setupDraft{
+		TargetIP:   "203.0.113.20",
+		RemotePort: "80,443",
+		LocalPort:  "80,443",
+		Protocol:   "tcp",
+	})
+	if err != nil {
+		t.Fatalf("buildInteractiveResult returned error: %v", err)
+	}
+
+	commandText := setupCommandText(result)
+	want := "-routes=80:203.0.113.20:80,443:203.0.113.20:443"
+	if !strings.Contains(commandText, want) {
+		t.Fatalf("setupCommandText missing %q: %s", want, commandText)
+	}
+}
+
 func TestFormatLocalPortStatus(t *testing.T) {
 	freeStatus := formatLocalPortStatus(localPortStatus{Protocol: "tcp", Available: true})
 	if !strings.Contains(freeStatus, "TCP: free") {
@@ -188,4 +279,13 @@ func TestFormatLocalPortStatus(t *testing.T) {
 	if !strings.Contains(busyStatus, "UDP: busy or unavailable") {
 		t.Fatalf("busy status text = %q", busyStatus)
 	}
+}
+
+func containsString(values []string, wanted string) bool {
+	for _, current := range values {
+		if current == wanted {
+			return true
+		}
+	}
+	return false
 }

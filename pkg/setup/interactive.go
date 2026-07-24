@@ -131,18 +131,26 @@ func askTargetIP(reader *bufio.Reader, draft *setupDraft) error {
 }
 
 func askRemotePort(reader *bufio.Reader, draft *setupDraft) error {
-	fmt.Print(colorize(greenText, promptWithDefault("2) Remote port", draft.RemotePort)))
-	port, err := readTrimmed(reader)
+	previousRemotePorts := draft.RemotePort
+	fmt.Print(colorize(greenText, promptWithDefault("2) Remote ports (comma-separated)", draft.RemotePort)))
+	portsRaw, err := readTrimmed(reader)
 	if err != nil {
 		return err
 	}
-	if port == "" {
-		port = draft.RemotePort
+	if portsRaw == "" {
+		portsRaw = draft.RemotePort
 	}
-	if err := validatePort(port); err != nil {
+	ports, err := parsePortList(portsRaw)
+	if err != nil {
 		return err
 	}
-	draft.RemotePort = port
+	draft.RemotePort = strings.Join(ports, ",")
+
+	// Local ports follow remote ports until the operator chooses a different mapping.
+	previousLocalPorts, localPortsErr := parsePortList(draft.LocalPort)
+	if draft.LocalPort == previousRemotePorts || (draft.LocalPort != "" && (localPortsErr != nil || len(previousLocalPorts) != len(ports))) {
+		draft.LocalPort = draft.RemotePort
+	}
 	return nil
 }
 
@@ -151,19 +159,30 @@ func askLocalPort(reader *bufio.Reader, draft *setupDraft) error {
 	if defaultLocalPort == "" {
 		defaultLocalPort = draft.RemotePort
 	}
-	fmt.Print(colorize(greenText, promptWithDefault("3) Local port", defaultLocalPort)))
-	localPort, err := readTrimmed(reader)
+	fmt.Print(colorize(greenText, promptWithDefault("3) Local ports (comma-separated)", defaultLocalPort)))
+	localPortsRaw, err := readTrimmed(reader)
 	if err != nil {
 		return err
 	}
-	if localPort == "" {
-		localPort = defaultLocalPort
+	if localPortsRaw == "" {
+		localPortsRaw = defaultLocalPort
 	}
-	if err := validatePort(localPort); err != nil {
+	localPorts, err := parsePortList(localPortsRaw)
+	if err != nil {
 		return err
 	}
-	draft.LocalPort = localPort
-	printLocalPortStatuses(localPort)
+	remotePorts, err := parsePortList(draft.RemotePort)
+	if err != nil {
+		return err
+	}
+	if len(localPorts) != len(remotePorts) {
+		return fmt.Errorf("local and remote port lists must contain the same number of ports")
+	}
+	if err := rejectDuplicatePorts(localPorts); err != nil {
+		return err
+	}
+	draft.LocalPort = strings.Join(localPorts, ",")
+	printLocalPortStatuses(localPorts)
 	return nil
 }
 
@@ -182,7 +201,11 @@ func askProtocol(reader *bufio.Reader, draft *setupDraft) error {
 	}
 	draft.Protocol = protocol
 	if draft.LocalPort != "" {
-		printProtocolPortStatus(draft.LocalPort, protocol)
+		localPorts, err := parsePortList(draft.LocalPort)
+		if err != nil {
+			return err
+		}
+		printProtocolPortStatuses(localPorts, protocol)
 	}
 	return nil
 }
@@ -269,29 +292,50 @@ func buildInteractiveResult(appName string, draft setupDraft) (*InteractiveResul
 		return nil, err
 	}
 
-	route := config.Route{LocalPort: draft.LocalPort, RemoteIP: draft.TargetIP, RemotePort: draft.RemotePort}
-	tcpRoutes := make([]config.Route, 0, 1)
-	udpRoutes := make([]config.Route, 0, 1)
-	if draft.Protocol == "udp" {
-		udpRoutes = append(udpRoutes, route)
-	} else {
-		tcpRoutes = append(tcpRoutes, route)
+	remotePorts, err := parsePortList(draft.RemotePort)
+	if err != nil {
+		return nil, err
+	}
+	localPorts, err := parsePortList(draft.LocalPort)
+	if err != nil {
+		return nil, err
+	}
+	if len(localPorts) != len(remotePorts) {
+		return nil, fmt.Errorf("local and remote port lists must contain the same number of ports")
+	}
+	if err := rejectDuplicatePorts(localPorts); err != nil {
+		return nil, err
+	}
+
+	tcpRoutes := make([]config.Route, 0, len(localPorts))
+	udpRoutes := make([]config.Route, 0, len(localPorts))
+	for portIndex, localPort := range localPorts {
+		route := config.Route{LocalPort: localPort, RemoteIP: draft.TargetIP, RemotePort: remotePorts[portIndex]}
+		if draft.Protocol == "udp" {
+			udpRoutes = append(udpRoutes, route)
+		} else {
+			tcpRoutes = append(tcpRoutes, route)
+		}
 	}
 
 	identifier := strings.Join(buildIdentifier([]string{draft.Protocol}, tcpRoutes, udpRoutes), "-")
-	return &InteractiveResult{
+	result := &InteractiveResult{
 		TCPRoutes:     tcpRoutes,
 		UDPRoutes:     udpRoutes,
 		AllowList:     allowList,
 		LogFile:       defaultLogFile(appName, identifier),
 		ServiceName:   defaultAutostartName(appName, identifier),
-		LocalFlag:     route.LocalPort,
-		RemoteFlag:    simpleRemoteFlag(route),
 		ProtoFlag:     draft.Protocol,
 		RoutesFlag:    routesFlagValue(tcpRoutes),
 		UDPRoutesFlag: routesFlagValue(udpRoutes),
 		AllowFlags:    allowList.FlagValues(),
-	}, nil
+	}
+	if len(localPorts) == 1 {
+		route := config.Route{LocalPort: localPorts[0], RemoteIP: draft.TargetIP, RemotePort: remotePorts[0]}
+		result.LocalFlag = route.LocalPort
+		result.RemoteFlag = simpleRemoteFlag(route)
+	}
+	return result, nil
 }
 
 func printConfigReview(result *InteractiveResult) {
@@ -332,10 +376,20 @@ func allowListText(values []string) string {
 }
 
 func setupCommandText(result *InteractiveResult) string {
-	parts := []string{
-		"-local=" + result.LocalFlag,
-		"-remote=" + result.RemoteFlag,
-		"-proto=" + result.ProtoFlag,
+	parts := make([]string, 0)
+	if result.LocalFlag != "" && result.RemoteFlag != "" {
+		parts = append(parts,
+			"-local="+result.LocalFlag,
+			"-remote="+result.RemoteFlag,
+			"-proto="+result.ProtoFlag,
+		)
+	} else {
+		if result.RoutesFlag != "" {
+			parts = append(parts, "-routes="+result.RoutesFlag)
+		}
+		if result.UDPRoutesFlag != "" {
+			parts = append(parts, "-udp-routes="+result.UDPRoutesFlag)
+		}
 	}
 	for _, allowFlag := range result.AllowFlags {
 		parts = append(parts, "-allow="+allowFlag)
@@ -347,22 +401,58 @@ func validatePort(port string) error {
 	return config.ValidatePort(port)
 }
 
+func parsePortList(raw string) ([]string, error) {
+	if strings.TrimSpace(raw) == "" {
+		return nil, fmt.Errorf("port list cannot be empty")
+	}
+
+	parts := strings.Split(raw, ",")
+	ports := make([]string, 0, len(parts))
+	for _, part := range parts {
+		port := strings.TrimSpace(part)
+		if port == "" {
+			return nil, fmt.Errorf("port list contains an empty port")
+		}
+		if err := validatePort(port); err != nil {
+			return nil, err
+		}
+		ports = append(ports, port)
+	}
+	return ports, nil
+}
+
+func rejectDuplicatePorts(ports []string) error {
+	seenPorts := make(map[string]struct{}, len(ports))
+	for _, port := range ports {
+		if _, exists := seenPorts[port]; exists {
+			return fmt.Errorf("local port %s is listed more than once", port)
+		}
+		seenPorts[port] = struct{}{}
+	}
+	return nil
+}
+
 type localPortStatus struct {
 	Protocol  string
 	Available bool
 	Err       error
 }
 
-func printLocalPortStatuses(port string) {
-	fmt.Printf(colorize(yellowText, "Local port %s status now:\n"), port)
-	for _, status := range checkLocalPortStatuses(port) {
-		fmt.Println(formatLocalPortStatus(status))
+func printLocalPortStatuses(ports []string) {
+	for _, port := range ports {
+		fmt.Printf(colorize(yellowText, "Local port %s status now:\n"), port)
+		for _, status := range checkLocalPortStatuses(port) {
+			fmt.Println(formatLocalPortStatus(status))
+		}
 	}
 }
 
-func printProtocolPortStatus(port, protocol string) {
-	status := checkLocalPortStatus(port, protocol)
-	fmt.Println(formatLocalPortStatus(status))
+func printProtocolPortStatuses(ports []string, protocol string) {
+	for _, port := range ports {
+		fmt.Printf(colorize(yellowText, "Local port %s status now:\n"), port)
+		status := checkLocalPortStatus(port, protocol)
+		fmt.Println(formatLocalPortStatus(status))
+	}
 }
 
 func checkLocalPortStatuses(port string) []localPortStatus {
