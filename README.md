@@ -258,3 +258,9 @@ In short, most forum questions come down to one simple request:
 “I just need to proxy a TCP or UDP port, but everyone recommends nginx, HAProxy, socat, xinetd, rinetd, iptables, WireGuard, or some other complex setup.”
 
 chicha-ip-proxy is designed specifically for this use case: a lightweight, cross-platform TCP/UDP port proxy with no configuration files, simple setup, automatic startup, and optional IP-based access control.
+
+---
+
+## License
+
+Source code is available under the [BSD 3-Clause License](LICENSE). Data and media assets are dedicated to the public domain under [CC0 1.0 Universal](LICENSE-DATA).
